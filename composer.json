@@ -1,5 +1,5 @@
 {
-    "name": "qti-sdk/qti-sdk",
+    "name": "nishadtaylor1/qti-sdk",
     "description": "A dependency-free PHP SDK for authoring IMS QTI 2.2 assessment items and content packages, with pluggable target-platform import profiles",
     "type": "library",
     "license": "MIT",

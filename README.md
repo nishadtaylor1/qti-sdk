@@ -14,7 +14,7 @@ against a specific importer's documented constraints before you ship it.
 ## Installation
 
 ```bash
-composer require qti-sdk/qti-sdk
+composer require nishadtaylor1/qti-sdk
 ```
 
 ## Quick start
@@ -76,7 +76,7 @@ and returns errors/warnings for anything that won't survive the trip.
 
 - QTI 2.2 and below; zip with top-level `imsmanifest.xml`; max 20 MB per package
 - Supports the nine interaction types above; rejects drawing/slider/associate/custom interactions
-- Flags `OrderInteraction` and `GraphicGapMatchInteraction` with a warning — Eduphoria documents
+- Flags `OrderInteraction` and `GraphicGapMatchInteraction` with a warning: Eduphoria documents
   these as *partially* supported, so verify them with a sandbox import
 - Warns when items carry no standards codes (unaligned items don't surface in Aware's Author tool)
 
@@ -84,13 +84,13 @@ Contributions of profiles for other platforms (Canvas, Schoology, TAO, …) are 
 
 ## Notes & limitations
 
-- **Export-focused.** There is no QTI *parser* yet — this SDK writes QTI, it does not read it.
+- **Export-focused.** There is no QTI *parser* yet: this SDK writes QTI, it does not read it.
 - Prompt/choice HTML must be XHTML-ish; tag soup is repaired via DOM's HTML parser and worst-case
   falls back to escaped text rather than producing an invalid package.
 - Media files can be bundled with `ContentPackage::addMediaFile()` and referenced by relative
   path from item HTML.
 - Standards codes are emitted as LOM `general/keyword` metadata. How (and whether) a given importer
-  maps those to its own standards database varies by vendor — verify with a sample import.
+  maps those to its own standards database varies by vendor, so verify with a sample import.
 
 ## Development
 
