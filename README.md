@@ -82,6 +82,22 @@ and returns errors/warnings for anything that won't survive the trip.
 
 Contributions of profiles for other platforms (Canvas, Schoology, TAO, …) are welcome.
 
+## JSON export
+
+QTI itself has no official JSON binding, so the SDK provides its own JSON representation of the
+object model for debugging, data pipelines, and non-XML consumers:
+
+```php
+use QtiSdk\Json\JsonExporter;
+
+$exporter = new JsonExporter();
+echo $exporter->toJson($package);   // or a single AssessmentItem
+```
+
+Output carries a `format`/`version` envelope so the schema can evolve safely. Every interaction
+type serializes with a stable `type` key (`choice`, `match`, `textEntry`, `extendedText`,
+`inlineChoice`, `hottext`, `order`, `hotspot`, `graphicGapMatch`).
+
 ## Notes & limitations
 
 - **Export-focused.** There is no QTI *parser* yet: this SDK writes QTI, it does not read it.
