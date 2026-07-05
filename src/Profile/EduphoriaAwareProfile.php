@@ -73,7 +73,7 @@ final class EduphoriaAwareProfile
                 $issues[] = [
                     'level'   => 'warning',
                     'message' => "Item '{$item->identifier}' uses an interaction Aware lists as partially " .
-                                 'supported — confirm it survives a sandbox import before shipping.',
+                                 'supported. Confirm it survives a sandbox import before shipping.',
                 ];
             }
             if ($item->standards === []) {
