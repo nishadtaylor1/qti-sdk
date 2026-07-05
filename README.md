@@ -1,7 +1,7 @@
 # QTI SDK for PHP
 
-A dependency-free PHP library for **authoring IMS/1EdTech QTI 2.2 assessment items** and packaging them as
-IMS content packages (`.zip` + `imsmanifest.xml`) that assessment platforms can import.
+A dependency-free PHP library for **authoring and parsing IMS/1EdTech QTI 2.x assessment items** and
+packaging them as IMS content packages (`.zip` + `imsmanifest.xml`) that assessment platforms can import.
 
 Built for the export/interchange use case: your application holds the questions; this SDK turns them into
 standards-compliant QTI packages. It includes pluggable **target-platform profiles** that validate a package
@@ -98,9 +98,32 @@ Output carries a `format`/`version` envelope so the schema can evolve safely. Ev
 type serializes with a stable `type` key (`choice`, `match`, `textEntry`, `extendedText`,
 `inlineChoice`, `hottext`, `order`, `hotspot`, `graphicGapMatch`).
 
+## Reading QTI
+
+The parser reads QTI 2.x items and whole packages back into SDK objects, which also gives you
+QTI to JSON conversion when combined with the exporter:
+
+```php
+use QtiSdk\Packaging\PackageReader;
+use QtiSdk\Xml\ItemParser;
+
+$item = (new ItemParser())->fromXml($xml);
+
+$reader  = new PackageReader();
+$package = $reader->read('/path/to/vendor-package.zip');
+foreach ($reader->skipped() as $skip) {
+    echo "Skipped {$skip['href']}: {$skip['reason']}\n";
+}
+```
+
+Parsing is namespace-lenient (QTI 2.1 and 2.2 both work), standards travel back from manifest
+metadata, and items the SDK cannot represent are reported as skipped with reasons instead of
+failing the whole package, the same way real importers behave.
+
 ## Notes & limitations
 
-- **Export-focused.** There is no QTI *parser* yet: this SDK writes QTI, it does not read it.
+- Items with interaction types outside the supported set (sliders, drawing, custom widgets)
+  are rejected by the item parser and reported as skipped by the package reader.
 - Prompt/choice HTML must be XHTML-ish; tag soup is repaired via DOM's HTML parser and worst-case
   falls back to escaped text rather than producing an invalid package.
 - Media files can be bundled with `ContentPackage::addMediaFile()` and referenced by relative
