@@ -6,9 +6,12 @@ namespace QtiSdk\Profile;
 
 use QtiSdk\Interaction\ChoiceInteraction;
 use QtiSdk\Interaction\ExtendedTextInteraction;
+use QtiSdk\Interaction\GraphicGapMatchInteraction;
+use QtiSdk\Interaction\HotspotInteraction;
 use QtiSdk\Interaction\HottextInteraction;
 use QtiSdk\Interaction\InlineChoiceInteraction;
 use QtiSdk\Interaction\MatchInteraction;
+use QtiSdk\Interaction\OrderInteraction;
 use QtiSdk\Interaction\TextEntryInteraction;
 use QtiSdk\Packaging\ContentPackage;
 
@@ -34,6 +37,16 @@ final class EduphoriaAwareProfile
         ExtendedTextInteraction::class,
         InlineChoiceInteraction::class,
         HottextInteraction::class,
+        HotspotInteraction::class,
+        OrderInteraction::class,
+        GraphicGapMatchInteraction::class,
+    ];
+
+    // Eduphoria documents these as "partially supported": some authoring
+    // variations import, some are skipped. Verify via a sandbox import.
+    private const PARTIAL_SUPPORT_INTERACTIONS = [
+        OrderInteraction::class,
+        GraphicGapMatchInteraction::class,
     ];
 
     /**
@@ -55,6 +68,12 @@ final class EduphoriaAwareProfile
                 $issues[] = [
                     'level'   => 'error',
                     'message' => "Item '{$item->identifier}' uses {$class}, which Aware does not import.",
+                ];
+            } elseif (in_array($class, self::PARTIAL_SUPPORT_INTERACTIONS, true)) {
+                $issues[] = [
+                    'level'   => 'warning',
+                    'message' => "Item '{$item->identifier}' uses an interaction Aware lists as partially " .
+                                 'supported — confirm it survives a sandbox import before shipping.',
                 ];
             }
             if ($item->standards === []) {

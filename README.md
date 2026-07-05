@@ -60,6 +60,9 @@ foreach ($issues as $issue) {
 | `ExtendedTextInteraction` | `extendedTextInteraction` | Essay / open response (human-scored) |
 | `InlineChoiceInteraction` | `inlineChoiceInteraction` | Dropdown inside a sentence |
 | `HottextInteraction` | `hottextInteraction` | Select word(s) in a passage |
+| `OrderInteraction` | `orderInteraction` | Arrange items into the correct sequence |
+| `HotspotInteraction` | `hotspotInteraction` | Select region(s) on an image |
+| `GraphicGapMatchInteraction` | `graphicGapMatchInteraction` | Drag labels onto image regions (labeling) |
 
 Scoring uses the standard QTI response-processing templates (`match_correct`, or `map_response`
 when alternates/mappings are declared), so any conformant delivery engine can score the items.
@@ -72,7 +75,9 @@ and returns errors/warnings for anything that won't survive the trip.
 **Included: `EduphoriaAwareProfile`** (Eduphoria Aware Custom Item Banks, common in Texas districts):
 
 - QTI 2.2 and below; zip with top-level `imsmanifest.xml`; max 20 MB per package
-- Supports the six interaction types above; rejects drawing/slider/associate/custom interactions
+- Supports the nine interaction types above; rejects drawing/slider/associate/custom interactions
+- Flags `OrderInteraction` and `GraphicGapMatchInteraction` with a warning — Eduphoria documents
+  these as *partially* supported, so verify them with a sandbox import
 - Warns when items carry no standards codes (unaligned items don't surface in Aware's Author tool)
 
 Contributions of profiles for other platforms (Canvas, Schoology, TAO, …) are welcome.
