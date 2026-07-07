@@ -6,7 +6,6 @@ namespace QtiSdk\Profile;
 
 use QtiSdk\Interaction\ChoiceInteraction;
 use QtiSdk\Interaction\ExtendedTextInteraction;
-use QtiSdk\Interaction\GraphicGapMatchInteraction;
 use QtiSdk\Interaction\HotspotInteraction;
 use QtiSdk\Interaction\HottextInteraction;
 use QtiSdk\Interaction\InlineChoiceInteraction;
@@ -39,14 +38,18 @@ final class EduphoriaAwareProfile
         HottextInteraction::class,
         HotspotInteraction::class,
         OrderInteraction::class,
-        GraphicGapMatchInteraction::class,
+        // GraphicGapMatchInteraction is NOT accepted: Eduphoria support
+        // confirmed (July 2026) they do not support drag and drop onto
+        // images, superseding the "partially supported" wording in their
+        // public documentation.
     ];
 
-    // Eduphoria documents these as "partially supported": some authoring
-    // variations import, some are skipped. Verify via a sandbox import.
+    // Eduphoria documents ordering as "partially supported"; their support
+    // clarified the constraint is answer cloning, which this SDK's
+    // OrderInteraction never emits. Kept as a warning until confirmed by a
+    // demo-account import.
     private const PARTIAL_SUPPORT_INTERACTIONS = [
         OrderInteraction::class,
-        GraphicGapMatchInteraction::class,
     ];
 
     /**

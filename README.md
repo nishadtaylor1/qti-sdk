@@ -75,10 +75,13 @@ and returns errors/warnings for anything that won't survive the trip.
 **Included: `EduphoriaAwareProfile`** (Eduphoria Aware Custom Item Banks, common in Texas districts):
 
 - QTI 2.2 and below; zip with top-level `imsmanifest.xml`; max 20 MB per package
-- Supports the nine interaction types above; rejects drawing/slider/associate/custom interactions
-- Flags `OrderInteraction` and `GraphicGapMatchInteraction` with a warning: Eduphoria documents
-  these as *partially* supported, so verify them with a sandbox import
-- Warns when items carry no standards codes (unaligned items don't surface in Aware's Author tool)
+- Rejects drawing/slider/associate/custom interactions, and `GraphicGapMatchInteraction`:
+  Eduphoria support confirmed (July 2026) that drag and drop onto images is not supported,
+  superseding the "partially supported" wording in their public docs
+- Flags `OrderInteraction` with a warning; the documented constraint is answer cloning, which
+  this SDK never emits, pending confirmation via a demo-account import
+- Warns when items carry no standards codes. Note: Eduphoria attaches standards by TEKS GUID
+  (TEA machine-readable identifier), not by human-readable code
 
 Contributions of profiles for other platforms (Canvas, Schoology, TAO, …) are welcome.
 
