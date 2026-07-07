@@ -151,8 +151,8 @@ final class ParserTest extends TestCase
         self::assertSame('pkg-roundtrip', $imported->identifier);
         self::assertSame([], $reader->skipped());
         self::assertCount(2, $imported->items());
-        self::assertSame(['113.15.b.8.A'], $imported->items()['item-1']->standards);
-        self::assertSame(['113.15.b.3.E', '113.15.b.3.F'], $imported->items()['item-2']->standards);
+        self::assertSame('113.15.b.8.A', $imported->items()['item-1']->standards[0]->code);
+        self::assertSame(['113.15.b.3.E', '113.15.b.3.F'], array_map(fn ($s) => $s->code, $imported->items()['item-2']->standards));
         self::assertInstanceOf(OrderInteraction::class, $imported->items()['item-2']->interaction);
     }
 }

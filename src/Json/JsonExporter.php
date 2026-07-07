@@ -27,7 +27,7 @@ use QtiSdk\QtiException;
 final class JsonExporter
 {
     public const FORMAT  = 'qti-sdk';
-    public const VERSION = 1;
+    public const VERSION = 2;   // v2: standards became {code, guid} objects
 
     /** @return array<string, mixed> */
     public function exportItem(AssessmentItem $item): array
@@ -36,7 +36,10 @@ final class JsonExporter
             'identifier'  => $item->identifier,
             'title'       => $item->title,
             'language'    => $item->language,
-            'standards'   => $item->standards,
+            'standards'   => array_map(
+                fn ($s) => ['code' => $s->code, 'guid' => $s->guid],
+                $item->standards
+            ),
             'promptHtml'  => $item->promptHtml,
             'interaction' => $this->exportInteraction($item->interaction),
         ];

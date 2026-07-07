@@ -34,7 +34,9 @@ $item = new AssessmentItem(
         correct: ['A'],
     ),
     promptHtml: '<p>Which city is the capital of Texas?</p>',
-    standards: ['113.15.b.8.A'],   // emitted as LOM keywords in the manifest
+    // Codes emit as LOM keywords; GUIDs additionally emit as IMS curriculum
+    // standards metadata for importers that align by GUID (e.g. Eduphoria/TEA)
+    standards: [['code' => '113.15.b.8.A', 'guid' => 'TEA-GUID-FROM-TEKS-GATEWAY']],
 );
 
 $package = new ContentPackage('grade4-unit3', 'Grade 4 – Unit 3');

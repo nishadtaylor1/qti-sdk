@@ -82,8 +82,14 @@ final class EduphoriaAwareProfile
             if ($item->standards === []) {
                 $issues[] = [
                     'level'   => 'warning',
-                    'message' => "Item '{$item->identifier}' has no standards attached — it will import " .
+                    'message' => "Item '{$item->identifier}' has no standards attached. It will import " .
                                  'but will not surface in Aware Author until standards are assigned.',
+                ];
+            } elseif (array_filter($item->standards, fn ($s) => $s->guid !== null) === []) {
+                $issues[] = [
+                    'level'   => 'warning',
+                    'message' => "Item '{$item->identifier}' has standards codes but no GUIDs. Aware aligns " .
+                                 'by TEKS GUID (TEA machine-readable identifier); codes alone will not pre-align.',
                 ];
             }
         }

@@ -83,15 +83,43 @@ final class PackageReader
         return $this->skipped;
     }
 
-    /** @return list<string> LOM keywords attached to the resource */
+    /** @return list<\QtiSdk\Item\Standard> codes from LOM keywords merged with GUIDs from labelledGUID blocks */
     private function standardsFor(\DOMElement $resource): array
     {
-        $standards = [];
-        foreach ($resource->getElementsByTagNameNS('*', 'keyword') as $keyword) {
-            $text = trim($keyword->textContent);
-            if ($text !== '') {
-                $standards[] = $text;
+        $guidsByCode = [];
+        foreach ($resource->getElementsByTagNameNS('*', 'labelledGUID') as $labelled) {
+            $label = $guid = null;
+            foreach ($labelled->childNodes as $child) {
+                if (!$child instanceof \DOMElement) {
+                    continue;
+                }
+                if ($child->localName === 'label') {
+                    $label = trim($child->textContent);
+                }
+                if ($child->localName === 'GUID') {
+                    $guid = trim($child->textContent);
+                }
             }
+            if ($guid !== null && $guid !== '') {
+                $guidsByCode[$label ?? $guid] = $guid;
+            }
+        }
+
+        $standards = [];
+        $seen = [];
+        foreach ($resource->getElementsByTagNameNS('*', 'keyword') as $keyword) {
+            $code = trim($keyword->textContent);
+            if ($code === '' || isset($seen[$code])) {
+                continue;
+            }
+            $seen[$code] = true;
+            $standards[] = new \QtiSdk\Item\Standard($code, $guidsByCode[$code] ?? null);
+            unset($guidsByCode[$code]);
+        }
+
+        // GUIDs whose label matched no keyword still travel as standards
+        foreach ($guidsByCode as $label => $guid) {
+            $standards[] = new \QtiSdk\Item\Standard((string) $label, $guid);
         }
 
         return $standards;

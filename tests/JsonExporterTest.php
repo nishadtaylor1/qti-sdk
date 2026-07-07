@@ -41,13 +41,13 @@ final class JsonExporterTest extends TestCase
         $data = $this->exporter->exportPackage($package);
 
         self::assertSame('qti-sdk', $data['format']);
-        self::assertSame(1, $data['version']);
+        self::assertSame(2, $data['version']);
         self::assertSame('pkg-json-1', $data['package']['identifier']);
         self::assertCount(1, $data['package']['items']);
 
         $item = $data['package']['items'][0];
         self::assertSame('item-1', $item['identifier']);
-        self::assertSame(['113.15.b.8.A'], $item['standards']);
+        self::assertSame([['code' => '113.15.b.8.A', 'guid' => null]], $item['standards']);
         self::assertSame('choice', $item['interaction']['type']);
         self::assertSame(['A'], $item['interaction']['correct']);
     }

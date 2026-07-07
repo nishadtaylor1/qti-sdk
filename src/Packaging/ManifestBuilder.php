@@ -15,6 +15,7 @@ final class ManifestBuilder
     public const CP_NS  = 'http://www.imsglobal.org/xsd/imscp_v1p1';
     public const LOM_NS = 'http://ltsc.ieee.org/xsd/LOM';
     public const XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance';
+    public const CSM_NS = 'http://www.imsglobal.org/xsd/imsccv1p1/imscsmd_v1p0';
 
     public const QTI_ITEM_RESOURCE_TYPE = 'imsqti_item_xmlv2p2';
 
@@ -80,7 +81,7 @@ final class ManifestBuilder
         return $doc;
     }
 
-    /** @param list<string> $standards */
+    /** @param list<\QtiSdk\Item\Standard> $standards */
     private function resourceMetadata(\DOMDocument $doc, string $title, array $standards, string $language): \DOMElement
     {
         $metadata = $doc->createElementNS(self::CP_NS, 'metadata');
@@ -91,14 +92,37 @@ final class ManifestBuilder
         $titleEl->appendChild($this->langString($doc, $title, $language));
         $general->appendChild($titleEl);
 
-        foreach ($standards as $code) {
+        foreach ($standards as $standard) {
             $keyword = $doc->createElementNS(self::LOM_NS, 'imsmd:keyword');
-            $keyword->appendChild($this->langString($doc, $code, $language));
+            $keyword->appendChild($this->langString($doc, $standard->code, $language));
             $general->appendChild($keyword);
         }
 
         $lom->appendChild($general);
         $metadata->appendChild($lom);
+
+        // Machine-readable standard GUIDs (e.g. TEA identifiers for TEKS) go in
+        // an IMS curriculum standards metadata block; GUID-aligning importers
+        // such as Eduphoria Aware read these rather than the keywords above.
+        $withGuids = array_values(array_filter($standards, fn ($s) => $s->guid !== null));
+        if ($withGuids !== []) {
+            $set  = $doc->createElementNS(self::CSM_NS, 'csm:curriculumStandardsMetadataSet');
+            $csmd = $doc->createElementNS(self::CSM_NS, 'csm:curriculumStandardsMetadata');
+            $guids = $doc->createElementNS(self::CSM_NS, 'csm:setOfGUIDs');
+            foreach ($withGuids as $standard) {
+                $labelled = $doc->createElementNS(self::CSM_NS, 'csm:labelledGUID');
+                $label = $doc->createElementNS(self::CSM_NS, 'csm:label');
+                $label->appendChild($doc->createTextNode($standard->code));
+                $guid = $doc->createElementNS(self::CSM_NS, 'csm:GUID');
+                $guid->appendChild($doc->createTextNode($standard->guid));
+                $labelled->appendChild($label);
+                $labelled->appendChild($guid);
+                $guids->appendChild($labelled);
+            }
+            $csmd->appendChild($guids);
+            $set->appendChild($csmd);
+            $metadata->appendChild($set);
+        }
 
         return $metadata;
     }
