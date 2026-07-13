@@ -37,11 +37,16 @@ final class ItemSerializer
         $responseDecl = $item->interaction->responseDeclaration();
         $root->appendChild($responseDecl->toDom($doc));
 
-        // SCORE outcome — required by the standard processing templates
+        // SCORE outcome — required by the standard processing templates. The
+        // normalMinimum/normalMaximum give importers an explicit score range;
+        // without normalMaximum a human-scored item (no correct answer to infer
+        // from) makes Eduphoria Aware warn and default the max to 1.
         $outcome = $doc->createElementNS(self::QTI_NS, 'outcomeDeclaration');
         $outcome->setAttribute('identifier', 'SCORE');
         $outcome->setAttribute('cardinality', 'single');
         $outcome->setAttribute('baseType', 'float');
+        $outcome->setAttribute('normalMinimum', '0');
+        $outcome->setAttribute('normalMaximum', self::formatScore($item->interaction->maxScore()));
         $default = $doc->createElementNS(self::QTI_NS, 'defaultValue');
         $value   = $doc->createElementNS(self::QTI_NS, 'value');
         $value->appendChild($doc->createTextNode('0'));
@@ -73,5 +78,13 @@ final class ItemSerializer
     public function toXml(AssessmentItem $item): string
     {
         return $this->toDom($item)->saveXML();
+    }
+
+    /** Compact decimal string for a score: 1.0 -> "1", 2.5 -> "2.5", 0.0 -> "0". */
+    private static function formatScore(float $score): string
+    {
+        $formatted = rtrim(rtrim(number_format($score, 4, '.', ''), '0'), '.');
+
+        return $formatted === '' ? '0' : $formatted;
     }
 }

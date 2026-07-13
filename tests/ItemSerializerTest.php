@@ -115,6 +115,30 @@ final class ItemSerializerTest extends TestCase
         self::assertSame(0, $xp->query('//q:correctResponse')->length);
     }
 
+    public function testScoreOutcomeDeclaresNormalRange(): void
+    {
+        $item = new AssessmentItem('item-mc-2', 'MC', new ChoiceInteraction(['A' => 'x'], ['A']));
+
+        $xp = $this->parse($this->serializer->toXml($item));
+        $outcome = $xp->query('//q:outcomeDeclaration[@identifier="SCORE"]')->item(0);
+        self::assertSame('0', $outcome->getAttribute('normalMinimum'));
+        self::assertSame('1', $outcome->getAttribute('normalMaximum'));
+    }
+
+    public function testExtendedTextDeclaresExplicitMaxScore(): void
+    {
+        $item = new AssessmentItem(
+            'item-essay-2',
+            'Essay',
+            new ExtendedTextInteraction(expectedLines: 8, maxScore: 4),
+        );
+
+        $xp = $this->parse($this->serializer->toXml($item));
+        $outcome = $xp->query('//q:outcomeDeclaration[@identifier="SCORE"]')->item(0);
+        self::assertSame('0', $outcome->getAttribute('normalMinimum'));
+        self::assertSame('4', $outcome->getAttribute('normalMaximum'));
+    }
+
     public function testInlineChoiceRendersInSentence(): void
     {
         $item = new AssessmentItem('item-ic-1', 'Dropdown', new InlineChoiceInteraction(

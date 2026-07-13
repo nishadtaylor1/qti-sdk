@@ -15,7 +15,10 @@ final class ManifestBuilder
     public const CP_NS  = 'http://www.imsglobal.org/xsd/imscp_v1p1';
     public const LOM_NS = 'http://ltsc.ieee.org/xsd/LOM';
     public const XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance';
-    public const CSM_NS = 'http://www.imsglobal.org/xsd/imsccv1p1/imscsmd_v1p0';
+    // QTI 2.2 curriculum-standards metadata namespace. NOT the Common Cartridge
+    // imscsmd namespace (…/imsccv1p1/…) — Eduphoria Aware reads standards from
+    // this QTI namespace, so the CC one imports clean but never links.
+    public const CSM_NS = 'http://www.imsglobal.org/xsd/qti/qtiv2p2/imscsmd_v1p0';
 
     public const QTI_ITEM_RESOURCE_TYPE = 'imsqti_item_xmlv2p2';
 
@@ -31,8 +34,15 @@ final class ManifestBuilder
             'xmlns:imsmd',
             self::LOM_NS
         );
+        $manifest->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:imscsmd',
+            self::CSM_NS
+        );
         $manifest->setAttributeNS(self::XSI_NS, 'xsi:schemaLocation',
-            self::CP_NS . ' http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd');
+            self::CP_NS . ' http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd ' .
+            self::LOM_NS . ' http://www.imsglobal.org/xsd/imsmd_loose_v1p3p2.xsd ' .
+            self::CSM_NS . ' http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_csm_v2p2.xsd');
         $doc->appendChild($manifest);
 
         $metadata = $doc->createElementNS(self::CP_NS, 'metadata');
@@ -101,26 +111,46 @@ final class ManifestBuilder
         $lom->appendChild($general);
         $metadata->appendChild($lom);
 
-        // Machine-readable standard GUIDs (e.g. TEA identifiers for TEKS) go in
-        // an IMS curriculum standards metadata block; GUID-aligning importers
-        // such as Eduphoria Aware read these rather than the keywords above.
+        // Machine-readable standard GUIDs go in the QTI curriculum-standards
+        // metadata block. Eduphoria Aware reads this (not the keywords above)
+        // and needs three things to actually link: the QTI imscsmd namespace
+        // (see CSM_NS), a providerId on curriculumStandardsMetadata, and a
+        // region on setOfGUIDs. Standards are grouped by provider, then region,
+        // so a mixed set still produces well-scoped blocks.
         $withGuids = array_values(array_filter($standards, fn ($s) => $s->guid !== null));
         if ($withGuids !== []) {
-            $set  = $doc->createElementNS(self::CSM_NS, 'csm:curriculumStandardsMetadataSet');
-            $csmd = $doc->createElementNS(self::CSM_NS, 'csm:curriculumStandardsMetadata');
-            $guids = $doc->createElementNS(self::CSM_NS, 'csm:setOfGUIDs');
+            $set = $doc->createElementNS(self::CSM_NS, 'imscsmd:curriculumStandardsMetadataSet');
+
+            $byProvider = [];
             foreach ($withGuids as $standard) {
-                $labelled = $doc->createElementNS(self::CSM_NS, 'csm:labelledGUID');
-                $label = $doc->createElementNS(self::CSM_NS, 'csm:label');
-                $label->appendChild($doc->createTextNode($standard->code));
-                $guid = $doc->createElementNS(self::CSM_NS, 'csm:GUID');
-                $guid->appendChild($doc->createTextNode($standard->guid));
-                $labelled->appendChild($label);
-                $labelled->appendChild($guid);
-                $guids->appendChild($labelled);
+                $byProvider[$standard->provider][(string) $standard->region][] = $standard;
             }
-            $csmd->appendChild($guids);
-            $set->appendChild($csmd);
+
+            foreach ($byProvider as $provider => $byRegion) {
+                $csmd = $doc->createElementNS(self::CSM_NS, 'imscsmd:curriculumStandardsMetadata');
+                $csmd->setAttribute('providerId', (string) $provider);
+
+                foreach ($byRegion as $region => $group) {
+                    $guids = $doc->createElementNS(self::CSM_NS, 'imscsmd:setOfGUIDs');
+                    if ($region !== '') {
+                        $guids->setAttribute('region', (string) $region);
+                    }
+                    foreach ($group as $standard) {
+                        $labelled = $doc->createElementNS(self::CSM_NS, 'imscsmd:labelledGUID');
+                        $label = $doc->createElementNS(self::CSM_NS, 'imscsmd:label');
+                        $label->appendChild($doc->createTextNode($standard->code));
+                        $guid = $doc->createElementNS(self::CSM_NS, 'imscsmd:GUID');
+                        $guid->appendChild($doc->createTextNode($standard->guid));
+                        $labelled->appendChild($label);
+                        $labelled->appendChild($guid);
+                        $guids->appendChild($labelled);
+                    }
+                    $csmd->appendChild($guids);
+                }
+
+                $set->appendChild($csmd);
+            }
+
             $metadata->appendChild($set);
         }
 

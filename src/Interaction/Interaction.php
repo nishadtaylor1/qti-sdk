@@ -26,4 +26,23 @@ abstract class Interaction
     {
         return true;
     }
+
+    /**
+     * Maximum attainable raw score — emitted as the SCORE outcome's
+     * normalMaximum so importers (e.g. Eduphoria Aware) don't have to guess.
+     * Mapped responses total their positive map values; everything else is
+     * all-or-nothing (1). Human-scored interactions override with their own
+     * point value.
+     */
+    public function maxScore(): float
+    {
+        $mapping = $this->responseDeclaration()->mapping;
+        if ($mapping !== []) {
+            $positive = array_filter($mapping, static fn ($points) => $points > 0);
+
+            return $positive === [] ? 1.0 : (float) array_sum($positive);
+        }
+
+        return 1.0;
+    }
 }

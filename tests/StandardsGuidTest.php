@@ -57,6 +57,33 @@ final class StandardsGuidTest extends TestCase
         self::assertStringContainsString('113.15.b.8.A', $doc->saveXML());   // keyword survives too
     }
 
+    public function testManifestEmitsProviderIdRegionAndQtiNamespace(): void
+    {
+        $package = new ContentPackage('pkg-region');
+        $package->addItem($this->itemWithStandards([
+            ['code' => 'A2.4.H', 'guid' => '9F64216C-0D0A-11E2-9583-8B2E9DFF4B22', 'region' => 'tea#teks#ma:2012'],
+        ]));
+
+        $doc = (new ManifestBuilder())->build($package);
+        $xp  = new \DOMXPath($doc);
+        $xp->registerNamespace('csm', ManifestBuilder::CSM_NS);
+
+        // The three things Eduphoria Aware needs to actually link the standard.
+        self::assertSame('http://www.imsglobal.org/xsd/qti/qtiv2p2/imscsmd_v1p0', ManifestBuilder::CSM_NS);
+        self::assertSame(
+            'org.academicbenchmarks',
+            $xp->query('//csm:curriculumStandardsMetadata')->item(0)->getAttribute('providerId')
+        );
+        self::assertSame(
+            'tea#teks#ma:2012',
+            $xp->query('//csm:setOfGUIDs')->item(0)->getAttribute('region')
+        );
+        self::assertSame(
+            '9F64216C-0D0A-11E2-9583-8B2E9DFF4B22',
+            $xp->query('//csm:labelledGUID/csm:GUID')->item(0)->textContent
+        );
+    }
+
     public function testManifestOmitsGuidBlockWhenNoGuids(): void
     {
         $package = new ContentPackage('pkg-noguid');
